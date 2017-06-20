@@ -1,0 +1,70 @@
+{
+    "Email": {
+        "Username": "",
+        "Password": "",
+        "Hostname": "",
+        "Port": 25,
+        "From": ""
+    },
+    "Sms": {
+        "Username": "cf_geralyin",
+        "Password": "mcctv84308299",
+        "ServerUrl": "http://106.ihuyi.cn/webservice/sms.php?method=Submit"
+    },
+    "Server": {
+        "DomainName": "192.168.8.60",
+        "Hostname": "",
+        "UseHTTP": true,
+        "UseHTTPS": false,
+        "HTTPPort": 8080,
+        "HTTPSPort": 443,
+        "CertFile": "tls/server.crt",
+        "KeyFile": "tls/server.key",
+        "Font": "font/comic.ttf",
+        "UploadPath": "upload/",
+        "DatabaseKey": "Hohm8ahpaiPeey3eib5bohgh2Maizei4",
+        "JWTSecretKey": "iep3eiz7pahph1utahvoocomaiYeu0li"
+    },
+    "Mqtt": {
+        "Hostname": "roabay.com",
+        "Port": 1883,
+        "Network": "tcp",
+        "ConnectTimeout": 60,
+        "PingRespTimeout": 60,
+        "KeepAlive": 10,
+        "SecretKey": "@r4B?EThaSEh_drudR7P_hub=s#s2Pah",
+        "AdminAccessToken": "OGZhgcVSsTGSlgvfwOElsHd93bZxV9qK"
+    },
+    "Redis": {
+        "Hostname": "roabay.com",
+        "Port": 6379,
+        "Password": ""
+    },
+    "MySQL": {
+        "Username": "root",
+        "Password": "rongbeizj@0571",
+        "Name": "account",
+        "Hostname": "roabay.com",
+        "Port": 3306,
+        "Parameter": "?parseTime=true"
+    },
+    "MongoDB": {
+        "Hostname": "roabay.com",
+        "Port": 27017,
+        "Database": "iot_test",
+        "Username": "rong",
+        "Password": "rongbei0571hz"
+    },
+    "Aliyun": {
+        "Endpoint": "",
+        "AccessKeyId": "",
+        "AccessKeySecret": "",
+        "Bucket": "engrobot"
+    },
+    "InfluxDB": {
+        "Hostname": "roabay.com",
+        "Port": 8086,
+        "Database": "Lightbox",
+        "Measurement": "logs"
+    }
+}
