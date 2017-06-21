@@ -22,26 +22,6 @@ var (
 	// Qcloud   QcloudInfo
 )
 
-// // Init 配置初始化
-// func Init(configFile string) {
-// 	config := cfg.NewConfig(configFile)
-
-// 	RedisClient = cfg.NewRedisClient()
-
-// 	system.DBInit()
-
-// 	Redis = config.Redis
-// 	Aliyun = config.Aliyun
-// 	Server = config.Server
-// 	InfluxDB = config.InfluxDB
-// 	MySQL = config.MySQL
-// 	Mqtt = config.Mqtt
-// 	MongoDB = config.MongoDB
-// 	Qiniu = config.Qiniu
-// 	Wechat = config.Wechat
-// 	// Qcloud = config.Qcloud
-// }
-
 // Config contains the application settings
 type Config struct {
 	Server   ServerInfo     `json:"Server"`

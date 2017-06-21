@@ -2,8 +2,6 @@ package config
 
 import (
 	"fmt"
-
-	mgo "gopkg.in/mgo.v2"
 )
 
 // MongodbInfo ...
@@ -35,9 +33,4 @@ func (s MongodbInfo) userName() string {
 	}
 
 	return ""
-}
-
-// NewMongoClient ...
-func NewMongoClient() (*mgo.Session, error) {
-	return mgo.Dial(MongoDB.URL())
 }
