@@ -23,15 +23,15 @@ type AliyunStore struct {
 
 // NewAliyunStore 新建阿里云 OSS 存储
 func NewAliyunStore() *AliyunStore {
-	client, err := oss.New(config.Cfg.Aliyun.Endpoint,
-		config.Cfg.Aliyun.AccessKeyID,
-		config.Cfg.Aliyun.AccessKeySecret)
+	client, err := oss.New(config.Aliyun.Endpoint,
+		config.Aliyun.AccessKeyID,
+		config.Aliyun.AccessKeySecret)
 	if err != nil {
 		println(err.Error())
 		return nil
 	}
 
-	bucket, e := client.Bucket(config.Cfg.Aliyun.Bucket)
+	bucket, e := client.Bucket(config.Aliyun.Bucket)
 	if e != nil {
 		println(err.Error())
 		return nil

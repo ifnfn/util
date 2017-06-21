@@ -21,8 +21,8 @@ type QiniuStore struct {
 
 // NewQiniuStore 新建七牛云存储
 func NewQiniuStore() *QiniuStore {
-	conf.ACCESS_KEY = config.Cfg.Qiniu.AccessKey
-	conf.SECRET_KEY = config.Cfg.Qiniu.SecretKey
+	conf.ACCESS_KEY = config.Qiniu.AccessKey
+	conf.SECRET_KEY = config.Qiniu.SecretKey
 
 	// 创建一个Client
 	c := kodo.New(0, nil)
@@ -34,7 +34,7 @@ func NewQiniuStore() *QiniuStore {
 
 // Save 保存
 func (f QiniuStore) Save(key string, file io.Reader) error {
-	p := f.Client.Bucket(config.Cfg.Qiniu.Bucket)
+	p := f.Client.Bucket(config.Qiniu.Bucket)
 
 	if _, e := p.Stat(nil, key); e == nil {
 		p.Delete(nil, key)
@@ -46,7 +46,7 @@ func (f QiniuStore) Save(key string, file io.Reader) error {
 	}
 	// 设置上传的策略
 	policy := &kodo.PutPolicy{
-		Scope: config.Cfg.Qiniu.Bucket,
+		Scope: config.Qiniu.Bucket,
 		//设置Token过期时间
 		Expires: 3600,
 	}
@@ -61,7 +61,7 @@ func (f QiniuStore) Save(key string, file io.Reader) error {
 
 // Get 读取数据
 func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
-	baseURL := kodo.MakeBaseUrl(config.Cfg.Qiniu.Domain, key)
+	baseURL := kodo.MakeBaseUrl(config.Qiniu.Domain, key)
 	policy := kodo.GetPolicy{
 		//设置Token过期时间
 		Expires: 3600,
@@ -82,7 +82,7 @@ func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
 // Remove 删除
 func (f QiniuStore) Remove(key string) error {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Cfg.Qiniu.Bucket)
+	p := f.Client.Bucket(config.Qiniu.Bucket)
 
 	return p.Delete(nil, key)
 }
@@ -90,7 +90,7 @@ func (f QiniuStore) Remove(key string) error {
 // Stat 读取数据
 func (f QiniuStore) Stat(key string) (Stat, error) {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Cfg.Qiniu.Bucket)
+	p := f.Client.Bucket(config.Qiniu.Bucket)
 
 	s, e := p.Stat(nil, key)
 	if e == nil {
@@ -106,7 +106,7 @@ func (f QiniuStore) Stat(key string) (Stat, error) {
 
 // URL 获取资源的 URL
 func (f QiniuStore) URL(key string) string {
-	baseURL := kodo.MakeBaseUrl(config.Cfg.Qiniu.Domain, key)
+	baseURL := kodo.MakeBaseUrl(config.Qiniu.Domain, key)
 	policy := kodo.GetPolicy{}
 
 	// 调用MakePrivateUrl方法返回url
@@ -116,7 +116,7 @@ func (f QiniuStore) URL(key string) string {
 // List 资源列表
 func (f QiniuStore) List() []Stat {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Cfg.Qiniu.Bucket)
+	p := f.Client.Bucket(config.Qiniu.Bucket)
 	if items, _, _, e := p.List(nil, "", "", "", 0); e == io.EOF {
 		ret := make([]Stat, len(items))
 		for idx, item := range items {

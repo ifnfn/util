@@ -8,8 +8,39 @@ import (
 	"os"
 )
 
-// Cfg ...
-var Cfg Config
+// Config ...
+var (
+	Server   ServerInfo
+	Redis    RedisInfo
+	Aliyun   AliyunInfo
+	InfluxDB InfluxdbInfo
+	MySQL    MySQLInfo
+	MongoDB  MongodbInfo
+	Qiniu    QiniuInfo
+	Mqtt     MqttServerInfo
+	Wechat   WechatInfo
+	// Qcloud   QcloudInfo
+)
+
+// // Init 配置初始化
+// func Init(configFile string) {
+// 	config := cfg.NewConfig(configFile)
+
+// 	RedisClient = cfg.NewRedisClient()
+
+// 	system.DBInit()
+
+// 	Redis = config.Redis
+// 	Aliyun = config.Aliyun
+// 	Server = config.Server
+// 	InfluxDB = config.InfluxDB
+// 	MySQL = config.MySQL
+// 	Mqtt = config.Mqtt
+// 	MongoDB = config.MongoDB
+// 	Qiniu = config.Qiniu
+// 	Wechat = config.Wechat
+// 	// Qcloud = config.Qcloud
+// }
 
 // Config contains the application settings
 type Config struct {
@@ -48,10 +79,23 @@ func (c *Config) Load(configFile string) {
 
 // NewConfig ...
 func NewConfig(configFile string) *Config {
+	config := &Config{}
+
 	if configFile == "" {
 		configFile = "config" + string(os.PathSeparator) + "config.json"
 	}
-	Cfg.Load(configFile)
+	config.Load(configFile)
 
-	return &Cfg
+	Redis = config.Redis
+	Aliyun = config.Aliyun
+	Server = config.Server
+	InfluxDB = config.InfluxDB
+	MySQL = config.MySQL
+	Mqtt = config.Mqtt
+	MongoDB = config.MongoDB
+	Qiniu = config.Qiniu
+	Wechat = config.Wechat
+	// Qcloud = config.Qcloud
+
+	return config
 }

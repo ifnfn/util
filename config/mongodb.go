@@ -6,9 +6,6 @@ import (
 	mgo "gopkg.in/mgo.v2"
 )
 
-// MgoSession ...
-type MgoSession *mgo.Session
-
 // MongodbInfo ...
 type MongodbInfo struct {
 	Hostname string `json:"Hostname"` // Server name
@@ -41,6 +38,6 @@ func (s MongodbInfo) userName() string {
 }
 
 // NewMongoClient ...
-func NewMongoClient() (MgoSession, error) {
-	return mgo.Dial(Cfg.MongoDB.URL())
+func NewMongoClient() (*mgo.Session, error) {
+	return mgo.Dial(MongoDB.URL())
 }

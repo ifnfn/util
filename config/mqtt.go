@@ -39,7 +39,7 @@ func mqttPassword(secretKey, password string) string {
 func EmqttClient(username string) MqttClient {
 	mc := MqttClient{
 		username: username,
-		password: mqttPassword(Cfg.Mqtt.SecretKey, username),
+		password: mqttPassword(Mqtt.SecretKey, username),
 	}
 
 	mc.connect()
@@ -49,13 +49,13 @@ func EmqttClient(username string) MqttClient {
 
 func (m *MqttClient) connect() {
 	opts := MQTT.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", Cfg.Mqtt.Hostname, Cfg.Mqtt.Port))
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", Mqtt.Hostname, Mqtt.Port))
 	opts.SetClientID(m.username)
 	opts.SetUsername(m.username)
 	opts.SetPassword(m.password)
 	opts.SetCleanSession(false)
-	opts.SetKeepAlive(time.Duration(Cfg.Mqtt.KeepAlive) * time.Second)
-	opts.SetPingTimeout(time.Duration(Cfg.Mqtt.PingRespTimeout) * time.Second)
+	opts.SetKeepAlive(time.Duration(Mqtt.KeepAlive) * time.Second)
+	opts.SetPingTimeout(time.Duration(Mqtt.PingRespTimeout) * time.Second)
 
 	m.client = MQTT.NewClient(opts)
 

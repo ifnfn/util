@@ -21,7 +21,7 @@ type MySQLInfo struct {
 }
 
 // DSN returns the Data Source Name
-func DSN(ci *MySQLInfo) string {
+func (ci MySQLInfo) DSN() string {
 	// Example: root:@tcp(localhost:3306)/test
 	return ci.Username + ":" +
 		ci.Password + "@tcp(" +
@@ -35,7 +35,7 @@ func NewMySQL() (SqlDB, error) {
 	var err error
 	var sql *sqlx.DB
 	// Connect to MySQL
-	if sql, err = sqlx.Connect("mysql", DSN(&Cfg.MySQL)); err != nil {
+	if sql, err = sqlx.Connect("mysql", MySQL.DSN()); err != nil {
 		// logger.Fatalf("SQL Driver Error: %s", err.Error())
 	}
 	sql = sql.Unsafe()

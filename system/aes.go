@@ -14,7 +14,7 @@ type AesEncrypt struct {
 }
 
 func (this *AesEncrypt) getKey() []byte {
-	strKey := config.Cfg.Server.DatabaseKey
+	strKey := config.Server.DatabaseKey
 	keyLen := len(strKey)
 	if keyLen < 16 {
 		panic("res key 长度不能小于16")

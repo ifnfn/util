@@ -70,7 +70,7 @@ type Hook struct {
 // NewInfluxDBHook generate a new InfluxDB hook based on the given configuration
 func NewInfluxDBHook() (*Hook, error) {
 	hook := &Hook{
-		config: Cfg.InfluxDB,
+		config: InfluxDB,
 	}
 
 	hook.config.setDefaults()

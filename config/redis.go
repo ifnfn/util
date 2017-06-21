@@ -25,8 +25,8 @@ func (s RedisInfo) Address() string {
 // NewRedisClient 初始化 Redis 服务器配置
 func NewRedisClient() RedisClient {
 	return redis.NewClient(&redis.Options{
-		Addr:         Cfg.Redis.Address(),
-		Password:     Cfg.Redis.Password, // no password set
+		Addr:         Redis.Address(),
+		Password:     Redis.Password, // no password set
 		DialTimeout:  10 * time.Second,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,

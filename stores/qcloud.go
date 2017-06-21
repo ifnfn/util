@@ -16,14 +16,14 @@ package stores
 // // NewQcloudStore 新建七牛云存储
 // func NewQcloudStore() *QcloudStore {
 // 	// return &QcloudStore{
-// 	// 	client: cos.New(config.Cfg.Qcloud.AppID, config.Cfg.Qcloud.SecretID, config.Cfg.Qcloud.SecretKey),
+// 	// 	client: cos.New(config.Qcloud.AppID, config.Qcloud.SecretID, config.Qcloud.SecretKey),
 // 	// 	// client: cos.New(config.Qcloud.AppID, config.Qcloud.SecretID, config.Qcloud.SecretKey),
 // 	// }
 // }
 
 // // Save 保存
 // func (f QcloudStore) Save(key string, file io.Reader) error {
-// 	F := f.client.Bucket(config.Cfg.Qcloud.Bucket).Dir("").File(key)
+// 	F := f.client.Bucket(config.Qcloud.Bucket).Dir("").File(key)
 
 // 	_, err := F.Upload(file, "")
 // 	// ret, err := f.client.Upload(file, config.Qcloud.Bucket, key)
