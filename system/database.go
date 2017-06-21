@@ -3,12 +3,16 @@ package system
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"roabay.com/util/config"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/jmoiron/sqlx"
+	mgo "gopkg.in/mgo.v2"
+
+	"gopkg.in/redis.v5"
 )
 
 var (
@@ -24,9 +28,42 @@ func (e *DBError) Error() string {
 	return e.Text
 }
 
+// NewMySQL Connect to the database
+func NewMySQL() (*sqlx.DB, error) {
+	var err error
+	var sql *sqlx.DB
+	// Connect to MySQL
+	if sql, err = sqlx.Connect("mysql", config.MySQL.DSN()); err != nil {
+		// logger.Fatalf("SQL Driver Error: %s", err.Error())
+	}
+	sql = sql.Unsafe()
+
+	// Check if is alive
+	return sql, sql.Ping()
+}
+
+// NewMongoClient ...
+func NewMongoClient() (*mgo.Session, error) {
+	return mgo.Dial(config.MongoDB.URL())
+}
+
+// NewRedisClient 初始化 Redis 服务器配置
+func NewRedisClient() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:         config.Redis.Address(),
+		Password:     config.Redis.Password, // no password set
+		DialTimeout:  10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		PoolTimeout:  30 * time.Second,
+		PoolSize:     10,
+		DB:           0, // use default DB
+	})
+}
+
 // DBInit MySQL 数据库初始化
 func DBInit() {
-	SQL, _ = config.NewMySQL()
+	SQL, _ = NewMySQL()
 }
 
 // GetTableCount 根据过滤条件，查询指定表的记录数
