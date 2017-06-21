@@ -34,10 +34,19 @@ func (s ServerInfo) HTTPSBindAddress() string {
 }
 
 // HTTP 返回服务器的 Http 扩展
-func (s ServerInfo) HTTP(args string) string {
+func (s ServerInfo) HTTP(args ...interface{}) string {
 	base := fmt.Sprintf("%s:%d", s.DomainName, s.HTTPPort)
 
-	return "http://" + path.Join(base, args)
+	param := fmt.Sprint(args...)
+	return "http://" + path.Join(base, param)
+}
+
+// HTTPf 带格式化处理
+func (s ServerInfo) HTTPf(format string, args ...interface{}) string {
+	base := fmt.Sprintf("%s:%d", s.DomainName, s.HTTPPort)
+
+	param := fmt.Sprintf(format, args...)
+	return "http://" + path.Join(base, param)
 }
 
 // HTTPS 返回服务器的 Https 扩展

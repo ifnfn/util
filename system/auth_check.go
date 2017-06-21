@@ -22,7 +22,6 @@ func CreateAccessToken(uid, JWTSecretKey string, timeoutSecond int64) string {
 		},
 	}
 
-	PrintInterface(claims)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, _ := token.SignedString(mySigningKey)
 
@@ -37,7 +36,7 @@ func CheckAccessTokenValid(accessToken, JWTSecretKey string) (*JwtCustomClaims, 
 
 	var claims JwtCustomClaims
 	token, err := jwt.ParseWithClaims(accessToken, &claims, keyFunc)
-	println(claims.UID)
+
 	if err == nil {
 		if token.Valid {
 			return &claims, nil
