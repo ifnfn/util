@@ -8,6 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type SqlDB *sqlx.DB
+
 // MySQLInfo is the details for the database connection
 type MySQLInfo struct {
 	Username  string
@@ -29,7 +31,7 @@ func DSN(ci *MySQLInfo) string {
 }
 
 // NewMySQL Connect to the database
-func NewMySQL() (*sqlx.DB, error) {
+func NewMySQL() (SqlDB, error) {
 	var err error
 	var sql *sqlx.DB
 	// Connect to MySQL

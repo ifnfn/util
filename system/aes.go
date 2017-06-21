@@ -3,7 +3,9 @@ package system
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"encoding/base64"
+	"io"
 
 	"roabay.com/util/config"
 )
@@ -89,4 +91,62 @@ func (this *AesEncrypt) Decrypt(src []byte) (strDesc string, err error) {
 	aesDecrypter.XORKeyStream(decrypted, src)
 
 	return string(decrypted), nil
+}
+
+// AesEncrpyt 加密
+func AesEncrpyt(src io.Reader, dst io.Writer, key string, ctp int) error {
+	md5Sum := md5.Sum([]byte(key)) // len = 16
+	block, err := aes.NewCipher(md5Sum[:])
+	if err != nil {
+		return err
+	}
+
+	iv := md5Sum[:block.BlockSize()]
+	var stream cipher.Stream
+
+	switch ctp {
+	case 1:
+		stream = cipher.NewCFBEncrypter(block, iv)
+	case 2:
+		stream = cipher.NewCTR(block, iv)
+	default:
+		stream = cipher.NewOFB(block, iv)
+	}
+
+	writer := &cipher.StreamWriter{S: stream, W: dst}
+	// Copy the input file to the output file, encrypting as we go.
+	if _, err := io.Copy(writer, src); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AesDecrypt 解密
+func AesDecrypt(src io.Reader, dst io.Writer, key string, ctp int) error {
+	md5Sum := md5.Sum([]byte(key)) // len = 16
+	block, err := aes.NewCipher(md5Sum[:])
+	if err != nil {
+		return err
+	}
+
+	iv := md5Sum[:block.BlockSize()]
+	var stream cipher.Stream
+
+	switch ctp {
+	case 1:
+		stream = cipher.NewCFBDecrypter(block, iv[:])
+	case 2:
+		stream = cipher.NewCTR(block, iv[:])
+	default:
+		stream = cipher.NewOFB(block, iv[:])
+	}
+
+	reader := &cipher.StreamReader{S: stream, R: src}
+	// Copy the input file to the output file, decrypting as we go.
+	if _, err := io.Copy(dst, reader); err != nil {
+		return err
+	}
+
+	return nil
 }
