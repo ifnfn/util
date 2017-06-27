@@ -56,13 +56,13 @@ func GetMD5(text []byte) string {
 
 // SendMobileMessage sends an email
 func (e SMSInfo) SendMobileMessage(to, code string) error {
-	URL := `http://iot.roabay.com/lib/aliyun-php-sdk-sms/sms.php?to=%s&code=%s&key=%s&v=%s`
-	URL = e.ServerUrl
+	//	URL := `http://iot.roabay.com/lib/aliyun-php-sdk-sms/sms.php?to=%s&code=%s&key=%s&v=%s`
+	Param := "?to=%s&code=%s&key=%s&v=%s"
 	text := fmt.Sprintf("%s%s%s", to, code, "viewmobile")
 	key := GetMD5([]byte(text))
-	URL = fmt.Sprintf(URL, to, code, key, GetRandomString(5))
-
+	Param = fmt.Sprintf(Param, to, code, key, GetRandomString(5))
+	URL := fmt.Sprintf("%s%s", e.ServerUrl, Param)
 	_, err := SmsRequestServer(URL, "", "GET")
-
+	fmt.Println("Url:", URL)
 	return err
 }
