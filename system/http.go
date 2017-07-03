@@ -78,13 +78,12 @@ func HTTPSSend(url, data, token, method string) ([]byte, error) {
 	}
 	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
-	req.Header.Add("authtoken", token)
+	req.Header["authtoken"] = []string{token}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Connection", "Keep-Alive")
-	req.Header.Add("User-Agent", "roabay go iot 1.0.1")
+	req.Header.Add("User-Agent", "Golang https client")
 	req.Header.Add("Cache-control", "no-cache")
-
 	req.Header.Set("Accept-Charset", "utf-8")
 	req.Header.Set("Accept-Encoding", "gzip,deflate,br")
 
