@@ -104,6 +104,7 @@ func HTTPSend(url, data, method string, headers map[string]string) ([]byte, erro
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
 	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Content-Type", "application/json")
 
 	for k, v := range headers {
 		req.Header.Add(k, v)
