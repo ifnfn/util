@@ -1,4 +1,4 @@
-package: account
+package: util
 import:
 - package: github.com/aliyun/aliyun-oss-go-sdk
   version: ^1.4.0

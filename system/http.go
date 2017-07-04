@@ -2,6 +2,7 @@ package system
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -21,9 +22,14 @@ func HTTPSend(url, data, method string, headers map[string]string) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
+
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
+		return ioutil.ReadAll(resp.Body)
+	}
+
+	return nil, fmt.Errorf("http error, %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
 // HTTPGet Get http
@@ -104,6 +110,42 @@ func HTTPDeleteJSON(url string, headers map[string]string) (interface{}, error) 
 	}
 
 	return jsonData, err
+}
+
+func getCache(url string) ([]byte, error) {
+	url = strings.ToUpper(url)
+	md5 := strings.ToUpper(GetMD5([]byte(url)))
+	fileName := "./cache/" + md5
+
+	return ioutil.ReadFile(fileName)
+}
+
+func saveCache(url string, data []byte) {
+	url = strings.ToUpper(url)
+	md5 := strings.ToUpper(GetMD5([]byte(url)))
+	fileName := "./cache/" + md5
+
+	ioutil.WriteFile(fileName, data, 0644)
+}
+
+// HTTPCacheGet ...
+func HTTPCacheGet(url string, headers map[string]string, cache bool) ([]byte, error) {
+	if cache {
+		if data, err := getCache(url); err == nil {
+			u := strings.ToUpper(url)
+			md5 := strings.ToUpper(GetMD5([]byte(u)))
+			println("cache->", md5, url)
+			return data, err
+		}
+	}
+
+	data, err := HTTPSend(url, "", "GET", headers)
+
+	if err == nil {
+		saveCache(url, data)
+	}
+
+	return data, err
 }
 
 // TaobaoGet 淘宝上的得到数据
