@@ -197,7 +197,7 @@ func checkFileIsExist(filename string) bool {
 // GetFilelist 获取指定目录的文件列表
 func GetFilelist(path string) []string {
 	files := make([]string, 0, 20)
-	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
 		}
@@ -208,9 +208,7 @@ func GetFilelist(path string) []string {
 		files = append(files, path)
 		return nil
 	})
-	if err != nil {
-		logger.Info("filepath.Walk() returned %v\n", err)
-	}
+
 	return files
 }
 
@@ -236,13 +234,26 @@ func getCurrentDirectory() string {
 }
 
 // GetViewHTML ...
-func GetViewHTML(viewFilePath string, data interface{}) string {
-	t, err := template.ParseFiles(viewFilePath)
+func GetViewHTML(fileName string, data interface{}) string {
+	var funcMaps = template.FuncMap{
+		"empty": func(str string) bool {
+			if str == "" {
+				return true
+			}
+			return false
+		},
+		"unescaped": func(x string) interface{} { return template.HTML(x) },
+	}
+	strValue := strings.Split(fileName, "/")
+	name := strValue[len(strValue)-1]
+
+	pathName := fmt.Sprintf("%s", fileName)
+	t, err := template.New(name).Funcs(funcMaps).ParseFiles(pathName)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 	}
 
-	html := bytes.NewBuffer(nil)
+	html := bytes.NewBufferString("")
 	err = t.Execute(html, data)
 	if err != nil {
 		log.Fatal(err)
@@ -260,6 +271,7 @@ func GetLayoutViewHTML(fileName string, data interface{}) string {
 			}
 			return false
 		},
+		// "unescaped": func(x string) interface{} { return template.HTML(x) },
 	}
 	strValue := strings.Split(fileName, "/")
 	name := strValue[len(strValue)-1]
