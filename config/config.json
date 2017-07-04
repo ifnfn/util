@@ -64,7 +64,7 @@
     "InfluxDB": {
         "Hostname": "roabay.com",
         "Port": 8086,
-        "Database": "Lightbox",
+        "Database": "iot",
         "Measurement": "logs"
     }
 }

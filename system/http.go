@@ -1,18 +1,110 @@
 package system
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
+
+	curl "github.com/andelf/go-curl"
 )
+
+func HTTPSPostEx(url, data, token string, rdata *[]byte) error {
+	easy := curl.EasyInit()
+	defer easy.Cleanup()
+
+	easy.Setopt(curl.OPT_URL, url)
+	easy.Setopt(curl.OPT_POST, false)
+	easy.Setopt(curl.OPT_SSL_VERIFYHOST, false)
+	easy.Setopt(curl.OPT_SSL_VERIFYPEER, false)
+	easy.Setopt(curl.OPT_TIMEOUT, 30)
+	easy.Setopt(curl.OPT_POSTFIELDS, data)
+	easy.Setopt(curl.OPT_POSTFIELDSIZE, len(data))
+	easy.Setopt(curl.OPT_HEADER, false)
+	easy.Setopt(curl.OPT_TRANSFERTEXT, true)
+
+	easy.Setopt(curl.OPT_HTTPHEADER, []string{
+		"Content-type: application/json;charset='utf-8'",
+		"Expect:",
+		"Accept: */*",
+		"Cache-Control: no-cache",
+		"Pragma: no-cache",
+		fmt.Sprintf("Content-Length: %d", len(data)),
+		fmt.Sprintf("authtoken: %s", token),
+	})
+	IsReturn := false
+	ReturnData := func(buf []byte, userdata interface{}) bool {
+		num := len(buf)
+		*rdata = buf[:num]
+		//		var f map[string]interface{}
+		//		json.Unmarshal([]byte(buf), &f)
+		//		fmt.Println("Request return:")
+		//		MapPrint(f)
+		//		_, ok := f["auth_token"]
+		//		if ok {
+		//			rdata = buf
+		//			AuthToken := fmt.Sprintf("%v", f["auth_token"])
+		//		}
+		//		println("DEBUG: size=>", len(buf))
+		//		println("Return: content=>", string(buf))
+		IsReturn = true
+		return true
+	}
+
+	easy.Setopt(curl.OPT_WRITEFUNCTION, ReturnData)
+
+	if err := easy.Perform(); err != nil {
+		println("ERROR: ", err.Error())
+		return err
+	}
+	time.Sleep(10000) // wait gorotine
+	if IsReturn == false {
+		time.Sleep(200000000)
+	}
+
+	return nil
+}
+
+func HTTPSPost(url, data, token string) ([]byte, error) {
+	return HTTPSSend(url, data, token, "POST")
+}
+
+func HTTPSSend(url, data, token, method string) ([]byte, error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	req, err := http.NewRequest(method, url, strings.NewReader(data))
+	req.Header.Add("authtoken", token)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Connection", "Keep-Alive")
+	req.Header.Add("User-Agent", "roabay go iot 1.0.1")
+	req.Header.Add("Cache-control", "no-cache")
+
+	req.Header.Set("Accept-Charset", "utf-8")
+	req.Header.Set("Accept-Encoding", "gzip,deflate,br")
+
+	fmt.Println("Url:", url, " authtoken:", token)
+	fmt.Println("Data:", data)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
+}
 
 // HTTPSend ...
 func HTTPSend(url, data, method string, headers map[string]string) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
 	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Content-Type", "application/json")
 
 	for k, v := range headers {
 		req.Header.Add(k, v)

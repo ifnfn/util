@@ -1,6 +1,7 @@
 package system
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,7 +25,7 @@ func CreateAccessToken(uid, JWTSecretKey string, timeoutSecond int64) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, _ := token.SignedString(mySigningKey)
-
+	tokenString = fmt.Sprintf("Bearer %s", tokenString)
 	return tokenString
 }
 

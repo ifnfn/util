@@ -1,4 +1,4 @@
-package system
+package config
 
 import (
 	"encoding/base64"
@@ -6,12 +6,8 @@ import (
 	"net/smtp"
 )
 
-var (
-	e *SMTPInfo
-)
-
-// SMTPInfo is the details for the SMTP server
-type SMTPInfo struct {
+// EmailInfo is the details for the SMTP server
+type EmailInfo struct {
 	Username string
 	Password string
 	Hostname string
@@ -19,13 +15,8 @@ type SMTPInfo struct {
 	From     string
 }
 
-// Configure adds the settings for the SMTP server
-func Configure(c *SMTPInfo) {
-	e = c
-}
-
 // SendEmail sends an email
-func SendEmail(to, subject, body string) error {
+func (e EmailInfo) SendEmail(to, subject, body string) error {
 	auth := smtp.PlainAuth("", e.Username, e.Password, e.Hostname)
 
 	header := make(map[string]string)
