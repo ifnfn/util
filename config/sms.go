@@ -1,21 +1,63 @@
 package config
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"io/ioutil"
-	"math/rand"
+
+	"crypto/md5"
 	"net/http"
 	"strings"
+
+	"encoding/hex"
+	"io/ioutil"
+	"math/rand"
 	"time"
+
+	"github.com/goroom/aliyun_sms"
+	"github.com/goroom/logger"
 )
 
 // SMSInfo is the details for the SMS server
 type SMSInfo struct {
-	Username  string
-	Password  string
-	ServerUrl string
+	SignName        string
+	TempletCode     string
+	AccessKey       string
+	AccessKeySecret string
+}
+
+// SendMobileMessage sends an email
+func (e SMSInfo) SendMobileMessage(to, code string) error {
+	Php := false
+	if Php {
+		URL := `http://iot.roabay.com/lib/aliyun-php-sdk-sms/sms.php?to=%s&code=%s&key=%s&v=%s`
+		Param := "?to=%s&code=%s&key=%s&v=%s"
+		text := fmt.Sprintf("%s%s%s", to, code, "viewmobile")
+		key := GetMD5([]byte(text))
+		Param = fmt.Sprintf(Param, to, code, key, GetRandomString(5))
+		URL = fmt.Sprintf("%s%s", URL, Param)
+		_, err := SmsRequestServer(URL, "", "GET")
+		fmt.Println("Url:", URL)
+		return err
+	} else {
+		TempletCode := e.TempletCode
+		AccessKey := e.AccessKey
+		AccessKeySecret := e.AccessKeySecret
+		SignName := e.SignName
+
+		aliyun_sms, err := aliyun_sms.NewAliyunSms(SignName, TempletCode, AccessKey, AccessKeySecret)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		cjson := `{"code":"%s"}`
+		data := fmt.Sprintf(cjson, code)
+		err = aliyun_sms.Send(to, data)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		logger.Error("Success")
+	}
+	return nil
 }
 
 func SmsRequestServer(url, data, method string) (string, error) {
@@ -52,17 +94,4 @@ func GetMD5(text []byte) string {
 	sum := md5.Sum(text)
 
 	return hex.EncodeToString(sum[:])
-}
-
-// SendMobileMessage sends an email
-func (e SMSInfo) SendMobileMessage(to, code string) error {
-	//	URL := `http://iot.roabay.com/lib/aliyun-php-sdk-sms/sms.php?to=%s&code=%s&key=%s&v=%s`
-	Param := "?to=%s&code=%s&key=%s&v=%s"
-	text := fmt.Sprintf("%s%s%s", to, code, "viewmobile")
-	key := GetMD5([]byte(text))
-	Param = fmt.Sprintf(Param, to, code, key, GetRandomString(5))
-	URL := fmt.Sprintf("%s%s", e.ServerUrl, Param)
-	_, err := SmsRequestServer(URL, "", "GET")
-	fmt.Println("Url:", URL)
-	return err
 }

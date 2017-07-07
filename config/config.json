@@ -7,9 +7,10 @@
         "From": ""
     },
     "Sms": {
-        "Username": "cf_geralyin",
-        "Password": "mcctv84308299",
-        "ServerUrl": "http://106.ihuyi.cn/webservice/sms.php?method=Submit"
+	"SignName":"容贝智城",
+	"TempletCode":"SMS_38790045",
+	"AccessKey":"LTAIl0WFf9fazIQR",
+	"AccessKeySecret":"PQiy1Ss3yDn6dkZOfvmSyXS25E6fUO"
     },
     "Server": {
         "DomainName": "192.168.8.60",
