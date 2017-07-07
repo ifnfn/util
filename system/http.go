@@ -1,6 +1,7 @@
 package system
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -98,12 +99,35 @@ func HTTPSSend(url, data, token, method string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
+// Fetch Httpclient
+func Fetch(url, method string, headers map[string]string, data []byte) ([]byte, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, bytes.NewReader(data))
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
+		return ioutil.ReadAll(resp.Body)
+	}
+
+	return nil, fmt.Errorf("http error, %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+}
+
 // HTTPSend ...
 func HTTPSend(url, data, method string, headers map[string]string) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
-	req.Header.Add("Accept", "*/*")
-	req.Header.Add("Content-Type", "application/json")
+		req.Header.Add("Accept", "*/*")
+		req.Header.Add("Content-Type", "application/json")
 
 	for k, v := range headers {
 		req.Header.Add(k, v)
@@ -219,8 +243,8 @@ func saveCache(url string, data []byte) {
 	ioutil.WriteFile(fileName, data, 0644)
 }
 
-// HTTPCacheGet ...
-func HTTPCacheGet(url string, headers map[string]string, cache bool) ([]byte, error) {
+// CacheFetch ...
+func CacheFetch(url, method string, headers map[string]string, dody []byte, cache bool) ([]byte, error) {
 	if cache {
 		if data, err := getCache(url); err == nil {
 			u := strings.ToUpper(url)
@@ -230,7 +254,7 @@ func HTTPCacheGet(url string, headers map[string]string, cache bool) ([]byte, er
 		}
 	}
 
-	data, err := HTTPSend(url, "", "GET", headers)
+	data, err := Fetch(url, method, headers, dody)
 
 	if err == nil {
 		saveCache(url, data)
