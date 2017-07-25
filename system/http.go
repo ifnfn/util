@@ -40,17 +40,6 @@ func HTTPSPostEx(url, data, token string, rdata *[]byte) error {
 	ReturnData := func(buf []byte, userdata interface{}) bool {
 		num := len(buf)
 		*rdata = buf[:num]
-		//		var f map[string]interface{}
-		//		json.Unmarshal([]byte(buf), &f)
-		//		fmt.Println("Request return:")
-		//		MapPrint(f)
-		//		_, ok := f["auth_token"]
-		//		if ok {
-		//			rdata = buf
-		//			AuthToken := fmt.Sprintf("%v", f["auth_token"])
-		//		}
-		//		println("DEBUG: size=>", len(buf))
-		//		println("Return: content=>", string(buf))
 		IsReturn = true
 		return true
 	}
@@ -126,8 +115,8 @@ func Fetch(url, method string, headers map[string]string, data []byte) ([]byte, 
 func HTTPSend(url, data, method string, headers map[string]string) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
-		req.Header.Add("Accept", "*/*")
-		req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Content-Type", "application/json")
 
 	for k, v := range headers {
 		req.Header.Add(k, v)
