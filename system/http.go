@@ -7,67 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
-	"time"
-
-	curl "github.com/andelf/go-curl"
 )
-
-func HTTPSPostEx(url, data, token string, rdata *[]byte) error {
-	easy := curl.EasyInit()
-	defer easy.Cleanup()
-
-	easy.Setopt(curl.OPT_URL, url)
-	easy.Setopt(curl.OPT_POST, false)
-	easy.Setopt(curl.OPT_SSL_VERIFYHOST, false)
-	easy.Setopt(curl.OPT_SSL_VERIFYPEER, false)
-	easy.Setopt(curl.OPT_TIMEOUT, 30)
-	easy.Setopt(curl.OPT_POSTFIELDS, data)
-	easy.Setopt(curl.OPT_POSTFIELDSIZE, len(data))
-	easy.Setopt(curl.OPT_HEADER, false)
-	easy.Setopt(curl.OPT_TRANSFERTEXT, true)
-
-	easy.Setopt(curl.OPT_HTTPHEADER, []string{
-		"Content-type: application/json;charset='utf-8'",
-		"Expect:",
-		"Accept: */*",
-		"Cache-Control: no-cache",
-		"Pragma: no-cache",
-		fmt.Sprintf("Content-Length: %d", len(data)),
-		fmt.Sprintf("authtoken: %s", token),
-	})
-	IsReturn := false
-	ReturnData := func(buf []byte, userdata interface{}) bool {
-		num := len(buf)
-		*rdata = buf[:num]
-		//		var f map[string]interface{}
-		//		json.Unmarshal([]byte(buf), &f)
-		//		fmt.Println("Request return:")
-		//		MapPrint(f)
-		//		_, ok := f["auth_token"]
-		//		if ok {
-		//			rdata = buf
-		//			AuthToken := fmt.Sprintf("%v", f["auth_token"])
-		//		}
-		//		println("DEBUG: size=>", len(buf))
-		//		println("Return: content=>", string(buf))
-		IsReturn = true
-		return true
-	}
-
-	easy.Setopt(curl.OPT_WRITEFUNCTION, ReturnData)
-
-	if err := easy.Perform(); err != nil {
-		println("ERROR: ", err.Error())
-		return err
-	}
-	time.Sleep(10000) // wait gorotine
-	if IsReturn == false {
-		time.Sleep(200000000)
-	}
-
-	return nil
-}
 
 func HTTPSPost(url, data, token string) ([]byte, error) {
 	return HTTPSSend(url, data, token, "POST")
@@ -100,9 +42,19 @@ func HTTPSSend(url, data, token, method string) ([]byte, error) {
 }
 
 // Fetch Httpclient
-func Fetch(url, method string, headers map[string]string, data []byte) ([]byte, error) {
+func Fetch(urls, method string, headers map[string]string, data []byte) ([]byte, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, bytes.NewReader(data))
+	req, err := http.NewRequest(method, urls, bytes.NewReader(data))
+
+	if proxyURL, exists := headers["Proxy"]; exists {
+		delete(headers, "Proxy")
+		if proxy, err := url.Parse(proxyURL); err == nil {
+			println("use http proxy: ", proxyURL)
+			client.Transport = &http.Transport{
+				Proxy: http.ProxyURL(proxy),
+			}
+		}
+	}
 
 	for k, v := range headers {
 		req.Header.Add(k, v)
@@ -119,15 +71,19 @@ func Fetch(url, method string, headers map[string]string, data []byte) ([]byte, 
 		return ioutil.ReadAll(resp.Body)
 	}
 
-	return nil, fmt.Errorf("http error, %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	// if v, e := ioutil.ReadAll(resp.Body); e == nil {
+	// 	println(string(v))
+	// }
+
+	return nil, fmt.Errorf("http error, %d: %s, %s", resp.StatusCode, http.StatusText(resp.StatusCode), urls)
 }
 
 // HTTPSend ...
 func HTTPSend(url, data, method string, headers map[string]string) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, strings.NewReader(data))
-		req.Header.Add("Accept", "*/*")
-		req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Content-Type", "application/json")
 
 	for k, v := range headers {
 		req.Header.Add(k, v)
@@ -227,29 +183,29 @@ func HTTPDeleteJSON(url string, headers map[string]string) (interface{}, error) 
 	return jsonData, err
 }
 
+// MD5url 将 URL 转为 MD5
+func MD5url(url string) string {
+	return strings.ToUpper(GetMD5([]byte(url)))
+}
+
 func getCache(url string) ([]byte, error) {
-	url = strings.ToUpper(url)
-	md5 := strings.ToUpper(GetMD5([]byte(url)))
-	fileName := "./cache/" + md5
+	fileName := "./cache/" + MD5url(url)
 
 	return ioutil.ReadFile(fileName)
 }
 
 func saveCache(url string, data []byte) {
-	url = strings.ToUpper(url)
-	md5 := strings.ToUpper(GetMD5([]byte(url)))
-	fileName := "./cache/" + md5
+	fileName := "./cache/" + MD5url(url)
 
 	ioutil.WriteFile(fileName, data, 0644)
 }
 
 // CacheFetch ...
 func CacheFetch(url, method string, headers map[string]string, dody []byte, cache bool) ([]byte, error) {
+	md5 := MD5url(url)
 	if cache {
 		if data, err := getCache(url); err == nil {
-			u := strings.ToUpper(url)
-			md5 := strings.ToUpper(GetMD5([]byte(u)))
-			println("cache->", md5, url)
+			// println("cache->", md5, url)
 			return data, err
 		}
 	}
@@ -260,6 +216,8 @@ func CacheFetch(url, method string, headers map[string]string, dody []byte, cach
 		saveCache(url, data)
 	}
 
+	println("GET: ", md5, url)
+
 	return data, err
 }
 
@@ -268,7 +226,7 @@ func TaobaoGet(url string) ([]byte, error) {
 	headers := map[string]string{
 		"Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6",
 		"Referer":         "https://h5.m.taobao.com/app/detail/desc.html?isH5Des=true",
-		"User-Agent":      "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.96 Mobile Safari/537.36",
+		"User-Agent":      "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36",
 	}
 	return HTTPSend(url, "", "GET", headers)
 }

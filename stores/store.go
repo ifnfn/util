@@ -31,6 +31,7 @@ func Copy(key string, src Store, dest Store) error {
 	var r io.ReadCloser
 
 	if r, err = src.Get(key); err == nil {
+		defer r.Close()
 		err = dest.Save(key, r)
 	}
 

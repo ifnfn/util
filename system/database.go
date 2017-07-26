@@ -44,7 +44,8 @@ func NewMySQL() (*sqlx.DB, error) {
 
 // NewMongoClient ...
 func NewMongoClient() (*mgo.Session, error) {
-	return mgo.Dial(config.MongoDB.URL())
+	url := config.MongoDB.URL() + "/" + config.MongoDB.Database
+	return mgo.Dial(url)
 }
 
 // NewRedisClient 初始化 Redis 服务器配置

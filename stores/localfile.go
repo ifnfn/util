@@ -2,6 +2,7 @@ package stores
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -68,6 +69,17 @@ func (f LocalFileStore) URL(key string) string {
 
 // List ...
 func (f LocalFileStore) List() []Stat {
-
-	return nil
+	var ret []Stat
+	if dirList, err := ioutil.ReadDir(f.Path); err == nil {
+		for _, fi := range dirList {
+			ret = append(ret, Stat{
+				Name:       fi.Name(),
+				Hash:       "",
+				MimeType:   "",
+				Size:       fi.Size(),
+				UpdateTime: fi.ModTime().UnixNano(),
+			})
+		}
+	}
+	return ret
 }

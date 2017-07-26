@@ -47,7 +47,6 @@ func ImageScale(src io.Reader, dest io.Writer, w, h int) error {
 		w /= 2
 		h /= 2
 	}
-	println(w, h)
 
 	dst := image.NewRGBA(image.Rect(0, 0, w, h))
 	if err := graphics.Thumbnail(dst, img); err == nil {
@@ -57,6 +56,7 @@ func ImageScale(src io.Reader, dest io.Writer, w, h int) error {
 			return jpeg.Encode(dest, img, nil)
 		}
 	}
+
 	return errors.New("format error")
 }
 

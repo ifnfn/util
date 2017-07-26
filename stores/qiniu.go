@@ -17,24 +17,31 @@ import (
 // QiniuStore 阿里云 OSS 存储
 type QiniuStore struct {
 	Client *kodo.Client
+	Bucket string
+	Domain string
 }
 
 // NewQiniuStore 新建七牛云存储
-func NewQiniuStore() *QiniuStore {
+func NewQiniuStore(bucket, domain string) *QiniuStore {
 	conf.ACCESS_KEY = config.Qiniu.AccessKey
 	conf.SECRET_KEY = config.Qiniu.SecretKey
 
 	// 创建一个Client
 	c := kodo.New(0, nil)
 
-	return &QiniuStore{
-		Client: c,
+	if bucket == "" {
+		bucket = config.Qiniu.Bucket
 	}
+	if domain == "" {
+		domain = config.Qiniu.Domain
+	}
+
+	return &QiniuStore{Client: c, Bucket: bucket, Domain: domain}
 }
 
 // Save 保存
 func (f QiniuStore) Save(key string, file io.Reader) error {
-	p := f.Client.Bucket(config.Qiniu.Bucket)
+	p := f.Client.Bucket(f.Bucket)
 
 	if _, e := p.Stat(nil, key); e == nil {
 		p.Delete(nil, key)
@@ -44,12 +51,14 @@ func (f QiniuStore) Save(key string, file io.Reader) error {
 		Hash string `json:"hash"`
 		Key  string `json:"key"`
 	}
+
 	// 设置上传的策略
 	policy := &kodo.PutPolicy{
-		Scope: config.Qiniu.Bucket,
+		Scope: f.Bucket,
 		//设置Token过期时间
 		Expires: 3600,
 	}
+
 	// 生成一个上传token
 	token := f.Client.MakeUptoken(policy)
 	uploader := kodocli.NewUploader(0, nil)
@@ -61,7 +70,7 @@ func (f QiniuStore) Save(key string, file io.Reader) error {
 
 // Get 读取数据
 func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
-	baseURL := kodo.MakeBaseUrl(config.Qiniu.Domain, key)
+	baseURL := kodo.MakeBaseUrl(f.Domain, key)
 	policy := kodo.GetPolicy{
 		//设置Token过期时间
 		Expires: 3600,
@@ -82,7 +91,7 @@ func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
 // Remove 删除
 func (f QiniuStore) Remove(key string) error {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Qiniu.Bucket)
+	p := f.Client.Bucket(f.Bucket)
 
 	return p.Delete(nil, key)
 }
@@ -90,7 +99,7 @@ func (f QiniuStore) Remove(key string) error {
 // Stat 读取数据
 func (f QiniuStore) Stat(key string) (Stat, error) {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Qiniu.Bucket)
+	p := f.Client.Bucket(f.Bucket)
 
 	s, e := p.Stat(nil, key)
 	if e == nil {
@@ -106,7 +115,7 @@ func (f QiniuStore) Stat(key string) (Stat, error) {
 
 // URL 获取资源的 URL
 func (f QiniuStore) URL(key string) string {
-	baseURL := kodo.MakeBaseUrl(config.Qiniu.Domain, key)
+	baseURL := kodo.MakeBaseUrl(f.Domain, key)
 	policy := kodo.GetPolicy{}
 
 	// 调用MakePrivateUrl方法返回url
@@ -116,22 +125,27 @@ func (f QiniuStore) URL(key string) string {
 // List 资源列表
 func (f QiniuStore) List() []Stat {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(config.Qiniu.Bucket)
-	if items, _, _, e := p.List(nil, "", "", "", 0); e == io.EOF {
-		ret := make([]Stat, len(items))
-		for idx, item := range items {
-			ret[idx] = Stat{
+	p := f.Client.Bucket(f.Bucket)
+
+	var ret []Stat
+
+	marker := ""
+	for {
+		items, _, markerOut, e := p.List(nil, "", "", marker, 0)
+		for _, item := range items {
+			ret = append(ret, Stat{
 				Name:       item.Key,
 				Hash:       item.Hash,
 				MimeType:   item.MimeType,
 				Size:       item.Fsize,
 				UpdateTime: item.PutTime,
-			}
+			})
 		}
-
-		sort.Sort(StatArray(ret))
-		return ret
+		marker = markerOut
+		if e == io.EOF {
+			break
+		}
 	}
-
-	return nil
+	sort.Sort(StatArray(ret))
+	return ret
 }
