@@ -129,7 +129,7 @@ func HTTPSend(url, data, method string, headers map[string]string) ([]byte, erro
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
 		return ioutil.ReadAll(resp.Body)
 	}
 
