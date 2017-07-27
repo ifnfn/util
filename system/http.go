@@ -71,10 +71,6 @@ func Fetch(urls, method string, headers map[string]string, data []byte) ([]byte,
 		return ioutil.ReadAll(resp.Body)
 	}
 
-	// if v, e := ioutil.ReadAll(resp.Body); e == nil {
-	// 	println(string(v))
-	// }
-
 	return nil, fmt.Errorf("http error, %d: %s, %s", resp.StatusCode, http.StatusText(resp.StatusCode), urls)
 }
 
@@ -96,7 +92,7 @@ func HTTPSend(url, data, method string, headers map[string]string) ([]byte, erro
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusNotModified || resp.StatusCode == http.StatusNotFound {
 		return ioutil.ReadAll(resp.Body)
 	}
 

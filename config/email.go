@@ -18,13 +18,12 @@ type EmailInfo struct {
 // SendEmail sends an email
 func (e EmailInfo) SendEmail(to, subject, body string) error {
 	auth := smtp.PlainAuth("", e.Username, e.Password, e.Hostname)
-
 	header := make(map[string]string)
 	header["From"] = e.From
 	header["To"] = to
 	header["Subject"] = subject
 	header["MIME-Version"] = "1.0"
-	header["Content-Type"] = `text/plain; charset="utf-8"`
+	header["Content-Type"] = `text/html; charset="utf-8"`
 	header["Content-Transfer-Encoding"] = "base64"
 
 	message := ""
@@ -41,6 +40,8 @@ func (e EmailInfo) SendEmail(to, subject, body string) error {
 		[]string{to},
 		[]byte(message),
 	)
-
+	if err != nil {
+		fmt.Println("Sen Mail error:", err)
+	}
 	return err
 }

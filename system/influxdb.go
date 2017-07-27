@@ -6,9 +6,11 @@ import (
 	"log"
 	"time"
 
-	"roabay.com/util/config"
+	"net/url"
 
+	cc "github.com/influxdata/influxdb/client"
 	client "github.com/influxdata/influxdb/client/v2"
+	"roabay.com/util/config"
 )
 
 // Activity represents the operation that specific module performs
@@ -178,4 +180,23 @@ func (hook *Hook) WriteNode(data DataNode) {
 func (hook *Hook) tearDown() {
 	hook.config.ChTearDown <- true
 	<-hook.config.ChTearDownDone
+}
+
+// test read influxdb data
+func (hook *Hook) QueryNode() {
+	host, err := url.Parse(fmt.Sprintf("http://%s:%d", hook.config.Hostname, 8086))
+	if err != nil {
+		log.Fatal(err)
+	}
+	con, err := cc.NewClient(cc.Config{URL: *host})
+	if err != nil {
+		log.Fatal(err)
+	}
+	q := cc.Query{
+		Command:  fmt.Sprintf("select * from %s limit 1000", hook.config.Measurement),
+		Database: hook.config.Database,
+	}
+	if response, err := con.Query(q); err == nil && response.Error() == nil {
+		log.Println(response.Results)
+	}
 }
