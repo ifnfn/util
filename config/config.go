@@ -21,22 +21,24 @@ var (
 	Wechat   WechatInfo
 	Sms      SMSInfo
 	Email    EmailInfo
+	Account  AccountInterface
 	// Qcloud   QcloudInfo
 )
 
 // Config contains the application settings
 type Config struct {
-	Server   ServerInfo     `json:"Server"`
-	Redis    RedisInfo      `json:"Redis"`
-	Aliyun   AliyunInfo     `json:"Aliyun"`
-	InfluxDB InfluxdbInfo   `json:"InfluxDB"`
-	MySQL    MySQLInfo      `json:"MySQL"`
-	MongoDB  MongodbInfo    `json:"MongoDB"`
-	Qiniu    QiniuInfo      `json:"Qiniu"`
-	Mqtt     MqttServerInfo `json:"Mqtt"`
-	Wechat   WechatInfo     `json:"Wechat"`
-	Sms      SMSInfo        `json:"Sms"`
-	Email    EmailInfo      `json:"Email"`
+	Server   ServerInfo       `json:"Server"`
+	Redis    RedisInfo        `json:"Redis"`
+	Aliyun   AliyunInfo       `json:"Aliyun"`
+	InfluxDB InfluxdbInfo     `json:"InfluxDB"`
+	MySQL    MySQLInfo        `json:"MySQL"`
+	MongoDB  MongodbInfo      `json:"MongoDB"`
+	Qiniu    QiniuInfo        `json:"Qiniu"`
+	Mqtt     MqttServerInfo   `json:"Mqtt"`
+	Wechat   WechatInfo       `json:"Wechat"`
+	Sms      SMSInfo          `json:"Sms"`
+	Email    EmailInfo        `json:"Email"`
+	Account  AccountInterface `json:"Account"`
 	// Qcloud   QcloudInfo     `json:"Qcloud"`
 }
 
@@ -81,6 +83,7 @@ func NewConfig(configFile string) *Config {
 	Wechat = config.Wechat
 	Sms = config.Sms
 	Email = config.Email
+	Account = config.Account
 	// Qcloud = config.Qcloud
 
 	return config
