@@ -68,6 +68,35 @@ func (f QiniuStore) Save(key string, file io.Reader) error {
 	return uploader.Put(nil, &ret, token, key, file, -1, nil)
 }
 
+// SaveExt 保存
+func (f QiniuStore) SaveExt(key string, file io.Reader, ext *kodocli.PutExtra) error {
+	p := f.Client.Bucket(f.Bucket)
+
+	if _, e := p.Stat(nil, key); e == nil {
+		p.Delete(nil, key)
+	}
+
+	type PutRet struct {
+		Hash string `json:"hash"`
+		Key  string `json:"key"`
+	}
+
+	// 设置上传的策略
+	policy := &kodo.PutPolicy{
+		Scope: f.Bucket,
+		//设置Token过期时间
+		Expires: 3600,
+	}
+
+	// 生成一个上传token
+	token := f.Client.MakeUptoken(policy)
+	uploader := kodocli.NewUploader(0, nil)
+
+	var ret PutRet
+
+	return uploader.Put(nil, &ret, token, key, file, -1, nil)
+}
+
 // Get 读取数据
 func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
 	baseURL := kodo.MakeBaseUrl(f.Domain, key)
@@ -104,9 +133,11 @@ func (f QiniuStore) Stat(key string) (Stat, error) {
 	s, e := p.Stat(nil, key)
 	if e == nil {
 		return Stat{
+			Name:       key,
 			Hash:       s.Hash,
 			Size:       s.Fsize,
 			UpdateTime: s.PutTime / 10000 / 1000,
+			MimeType:   s.MimeType,
 		}, nil
 	}
 

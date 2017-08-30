@@ -20,7 +20,11 @@ func GraphicsScale(src image.Image, w int, h int) (image.Image, error) {
 
 // ImageScale 图片缩放, 当 w 或者 h 为 0时，按原图宽高比计算, 全为 0时，大小不变
 func ImageScale(src io.Reader, dest io.Writer, w, h int) error {
-	img, format, _ := image.Decode(src)
+	img, format, err := image.Decode(src)
+	if err != nil {
+		println(err.Error)
+		return err
+	}
 	r := img.Bounds()
 	rDx := r.Dx()
 	rDy := r.Dy()

@@ -211,7 +211,7 @@ func CacheFetch(url, method string, headers map[string]string, dody []byte, cach
 	if err == nil {
 		saveCache(url, data)
 	}
-
+	// println(string(data))
 	println("GET: ", md5, url)
 
 	return data, err
