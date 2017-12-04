@@ -2,32 +2,34 @@ package stores
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"sort"
+	"time"
+
+	"github.com/qiniu/api.v7/auth/qbox"
+	"github.com/qiniu/api.v7/storage"
 
 	"roabay.com/util/config"
 	"roabay.com/util/system"
-
-	"qiniupkg.com/api.v7/conf"
-	"qiniupkg.com/api.v7/kodo"
-	"qiniupkg.com/api.v7/kodocli"
 )
 
 // QiniuStore 阿里云 OSS 存储
 type QiniuStore struct {
-	Client *kodo.Client
+	Client *qbox.Mac
 	Bucket string
 	Domain string
+	Config *storage.Config
 }
 
 // NewQiniuStore 新建七牛云存储
 func NewQiniuStore(bucket, domain string) *QiniuStore {
-	conf.ACCESS_KEY = config.Qiniu.AccessKey
-	conf.SECRET_KEY = config.Qiniu.SecretKey
+	mac := qbox.NewMac(config.Qiniu.AccessKey, config.Qiniu.SecretKey)
 
-	// 创建一个Client
-	c := kodo.New(0, nil)
+	// // 创建一个Client
+	// c := kodo.New(0, nil)
 
 	if bucket == "" {
 		bucket = config.Qiniu.Bucket
@@ -35,45 +37,32 @@ func NewQiniuStore(bucket, domain string) *QiniuStore {
 	if domain == "" {
 		domain = config.Qiniu.Domain
 	}
+	cfg := &storage.Config{
+		// 空间对应的机房
+		Zone: &storage.ZoneHuadong,
+		// 是否使用https域名
+		UseHTTPS: false,
+		// 上传是否使用CDN上传加速
+		UseCdnDomains: true,
+	}
 
-	return &QiniuStore{Client: c, Bucket: bucket, Domain: domain}
+	return &QiniuStore{Client: mac, Bucket: bucket, Domain: domain, Config: cfg}
+}
+
+// BucketManager ...
+func (f QiniuStore) BucketManager() *storage.BucketManager {
+	return storage.NewBucketManager(f.Client, f.Config)
 }
 
 // Save 保存
 func (f QiniuStore) Save(key string, file io.Reader) error {
-	p := f.Client.Bucket(f.Bucket)
-
-	if _, e := p.Stat(nil, key); e == nil {
-		p.Delete(nil, key)
-	}
-
-	type PutRet struct {
-		Hash string `json:"hash"`
-		Key  string `json:"key"`
-	}
-
-	// 设置上传的策略
-	policy := &kodo.PutPolicy{
-		Scope: f.Bucket,
-		//设置Token过期时间
-		Expires: 3600,
-	}
-
-	// 生成一个上传token
-	token := f.Client.MakeUptoken(policy)
-	uploader := kodocli.NewUploader(0, nil)
-
-	var ret PutRet
-
-	return uploader.Put(nil, &ret, token, key, file, -1, nil)
+	return f.SaveExt(key, file, nil)
 }
 
 // SaveExt 保存
-func (f QiniuStore) SaveExt(key string, file io.Reader, ext *kodocli.PutExtra) error {
-	p := f.Client.Bucket(f.Bucket)
-
-	if _, e := p.Stat(nil, key); e == nil {
-		p.Delete(nil, key)
+func (f QiniuStore) SaveExt(key string, file io.Reader, ext *storage.PutExtra) error {
+	if _, e := f.Stat(key); e == nil {
+		f.Remove(key)
 	}
 
 	type PutRet struct {
@@ -82,31 +71,24 @@ func (f QiniuStore) SaveExt(key string, file io.Reader, ext *kodocli.PutExtra) e
 	}
 
 	// 设置上传的策略
-	policy := &kodo.PutPolicy{
+	putPolicy := storage.PutPolicy{
 		Scope: f.Bucket,
 		//设置Token过期时间
 		Expires: 3600,
 	}
 
 	// 生成一个上传token
-	token := f.Client.MakeUptoken(policy)
-	uploader := kodocli.NewUploader(0, nil)
+	upToken := putPolicy.UploadToken(f.Client)
+	formUploader := storage.NewFormUploader(f.Config)
 
 	var ret PutRet
 
-	return uploader.Put(nil, &ret, token, key, file, -1, nil)
+	return formUploader.Put(context.Background(), &ret, upToken, key, file, -1, ext)
 }
 
 // Get 读取数据
 func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
-	baseURL := kodo.MakeBaseUrl(f.Domain, key)
-	policy := kodo.GetPolicy{
-		//设置Token过期时间
-		Expires: 3600,
-	}
-
-	// 调用MakePrivateUrl方法返回url
-	u := f.Client.MakePrivateUrl(baseURL, &policy)
+	u := f.URL(key)
 
 	var r io.ReadCloser
 	ret, err := system.HTTPGet(u, nil)
@@ -119,18 +101,12 @@ func (f QiniuStore) Get(key string) (io.ReadCloser, error) {
 
 // Remove 删除
 func (f QiniuStore) Remove(key string) error {
-	// new一个Bucket管理对象
-	p := f.Client.Bucket(f.Bucket)
-
-	return p.Delete(nil, key)
+	return f.BucketManager().Delete(f.Bucket, key)
 }
 
 // Stat 读取数据
 func (f QiniuStore) Stat(key string) (Stat, error) {
-	// new一个Bucket管理对象
-	p := f.Client.Bucket(f.Bucket)
-
-	s, e := p.Stat(nil, key)
+	s, e := f.BucketManager().Stat(f.Bucket, key)
 	if e == nil {
 		return Stat{
 			Name:       key,
@@ -146,37 +122,50 @@ func (f QiniuStore) Stat(key string) (Stat, error) {
 
 // URL 获取资源的 URL
 func (f QiniuStore) URL(key string) string {
-	baseURL := kodo.MakeBaseUrl(f.Domain, key)
-	policy := kodo.GetPolicy{}
+	// publicAccessURL := storage.MakePublicURL(f.domain, key)
 
-	// 调用MakePrivateUrl方法返回url
-	return f.Client.MakePrivateUrl(baseURL, &policy)
+	deadline := time.Now().Add(time.Second * 3600).Unix() //1小时有效期
+	return storage.MakePrivateURL(f.Client, "http://"+f.Domain, key, deadline)
 }
 
 // List 资源列表
 func (f QiniuStore) List() []Stat {
 	// new一个Bucket管理对象
-	p := f.Client.Bucket(f.Bucket)
+	bucketManager := f.BucketManager()
+
+	limit := 1000
+	prefix := ""
+	delimiter := ""
+	//初始列举marker为空
+	marker := ""
 
 	var ret []Stat
 
-	marker := ""
 	for {
-		items, _, markerOut, e := p.List(nil, "", "", marker, 0)
-		for _, item := range items {
-			ret = append(ret, Stat{
-				Name:       item.Key,
-				Hash:       item.Hash,
-				MimeType:   item.MimeType,
-				Size:       item.Fsize,
-				UpdateTime: item.PutTime,
-			})
-		}
-		marker = markerOut
-		if e == io.EOF {
+		entries, _, nextMarker, hashNext, err := bucketManager.ListFiles(f.Bucket, prefix, delimiter, marker, limit)
+		if err != nil {
+			fmt.Println("list error,", err)
 			break
 		}
+
+		for _, entry := range entries {
+			ret = append(ret, Stat{
+				Name:       entry.Key,
+				Hash:       entry.Hash,
+				MimeType:   entry.MimeType,
+				Size:       entry.Fsize,
+				UpdateTime: entry.PutTime,
+			})
+		}
+
+		if hashNext {
+			marker = nextMarker
+		} else {
+			break
+		}
+
 	}
+
 	sort.Sort(StatArray(ret))
 	return ret
 }

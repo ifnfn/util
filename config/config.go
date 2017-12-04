@@ -19,7 +19,6 @@ var (
 	Qiniu    QiniuInfo
 	Mqtt     MqttServerInfo
 	Wechat   WechatInfo
-	Sms      SMSInfo
 	Email    EmailInfo
 	Account  AccountInterface
 	// Qcloud   QcloudInfo
@@ -36,7 +35,6 @@ type Config struct {
 	Qiniu    QiniuInfo        `json:"Qiniu"`
 	Mqtt     MqttServerInfo   `json:"Mqtt"`
 	Wechat   WechatInfo       `json:"Wechat"`
-	Sms      SMSInfo          `json:"Sms"`
 	Email    EmailInfo        `json:"Email"`
 	Account  AccountInterface `json:"Account"`
 	// Qcloud   QcloudInfo     `json:"Qcloud"`
@@ -81,7 +79,6 @@ func NewConfig(configFile string) *Config {
 	MongoDB = config.MongoDB
 	Qiniu = config.Qiniu
 	Wechat = config.Wechat
-	Sms = config.Sms
 	Email = config.Email
 	Account = config.Account
 	// Qcloud = config.Qcloud
