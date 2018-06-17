@@ -10,7 +10,7 @@ import (
 
 	cc "github.com/influxdata/influxdb/client"
 	client "github.com/influxdata/influxdb/client/v2"
-	"roabay.com/util/config"
+	"github.com/ifnfn/util/config"
 )
 
 // Activity represents the operation that specific module performs

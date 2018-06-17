@@ -3,7 +3,7 @@ package stores
 // import (
 // 	"io"
 
-// 	"roabay.com/config"
+// 	"github.com/ifnfn/util/config"
 
 // 	cos "github.com/cxr29/cos-golang-sdk"
 // )

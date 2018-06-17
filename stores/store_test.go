@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"roabay.com/util/config"
+	"github.com/ifnfn/util/config"
 )
 
 func testStore(t *testing.T, s Store) {

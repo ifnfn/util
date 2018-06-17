@@ -12,8 +12,8 @@ import (
 	"github.com/qiniu/api.v7/auth/qbox"
 	"github.com/qiniu/api.v7/storage"
 
-	"roabay.com/util/config"
-	"roabay.com/util/system"
+	"github.com/ifnfn/util/config"
+	"github.com/ifnfn/util/system"
 )
 
 // QiniuStore 阿里云 OSS 存储

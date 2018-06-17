@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"roabay.com/util/config"
+	"github.com/ifnfn/util/config"
 
 	_ "github.com/go-sql-driver/mysql"
 

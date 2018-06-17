@@ -6,12 +6,10 @@ import (
 	"encoding/hex"
 	"io"
 	"time"
-
-	"roabay.com/util/config"
-	"roabay.com/util/system"
-
 	"strconv"
 
+	"github.com/ifnfn/util/config"
+	"github.com/ifnfn/util/system"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )
 

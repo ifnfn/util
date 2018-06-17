@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"io"
 
-	"roabay.com/util/config"
+	"github.com/ifnfn/util/config"
 )
 
 type AesEncrypt struct {
